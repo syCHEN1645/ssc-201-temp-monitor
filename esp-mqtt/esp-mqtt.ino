@@ -82,9 +82,12 @@ void setup() {
   Serial.println("\nTime is synchronised");
   // set mqtt
   wifiClient.setInsecure();
+  Serial.println("set insecure");
   mqttClient.setServer(mqtt_server, mqtt_port);
+  Serial.println("set server");
   mqttClient.setKeepAlive(120);
   mqttClient.setCallback(callback);
+  Serial.println("set callback");
 }
 
 bool isDayTime() {
@@ -131,18 +134,18 @@ void loop() {
   }
 
   // only send data in daytime 0700-1900
-  // if (isDayTime()) {
-  //   if (!mqttClient.connected()) {
-  //     connectBroker();
-  //   }
-  //   mqttClient.loop();
-  //   publishMessage(solarSensor, topic);
-  //   delay(2000);
-  //   publishMessage(compareSensor, topic);
-  //   delay(18000);
-  // } else {
-  //   Serial.println("Off work, go sleep...");
-  //   // delay 10 minutes
-  //   delay(600000);
-  // }
+  if (isDayTime()) {
+    if (!mqttClient.connected()) {
+      connectBroker();
+    }
+    mqttClient.loop();
+    publishMessage(solarSensor, topic);
+    delay(2000);
+    publishMessage(compareSensor, topic);
+    delay(8000);
+  } else {
+    Serial.println("Off work, go sleep...");
+    // delay 10 minutes
+    delay(600000);
+  }
 }

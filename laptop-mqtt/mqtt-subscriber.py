@@ -3,7 +3,6 @@ import ssl
 import time
 import json
 from pymongo import MongoClient
-# from datetime import datetime
 from config import BROKER, USERNAME, PASSWORD, MONGO_URI
 
 # mqtt broker info
@@ -16,9 +15,8 @@ topic = "thermocouple-readings"
 # mongodb info
 mongo_uri = MONGO_URI
 client_mongo = MongoClient(mongo_uri)
-db = client_mongo["test"]
-coll_solar = db["test-data-solar"]
-coll_compare = db["test-data-compare"]
+db_compare = client_mongo["temp-compare"]
+db_solar = client_mongo["temp-solar"]
 
 # connection state
 is_connected = False
@@ -46,20 +44,20 @@ def on_message(client, userdata, msg):
     date_time = msg_d["time"].split()
     date = int(date_time[0])
     time = int(date_time[1])
+    if (sensor_name == "solar"):
+        db = db_solar
+    elif (sensor_name == "compare"):
+        db = db_compare
+    
+    coll = db[f"{date}"]
 
     data = {
         "temp": msg_d["temp"],
-        "date": date,
         "time": time
-        # no longer need as msg itself is timestamped
-        # "timestamp": datetime.now()
     }
-    if (sensor_name == "solar"):
-        collection = coll_solar
-    elif (sensor_name == "compare"):
-        collection = coll_compare
+
     try:
-        result = collection.insert_one(data)
+        result = coll.insert_one(data)
         print(f"Inserted into MongoDB with _id: {result.inserted_id}")
     except Exception as e:
         print(f"Failed to insert into MongoDB: {e}")
